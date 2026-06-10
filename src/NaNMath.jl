@@ -62,24 +62,16 @@ sqrt(x::T) where {T<:AbstractFloat} = x < T(0) ? T(NaN) : Base.sqrt(x)
 sqrt(x::Real) = sqrt(float(x))
 
 # Don't override built-in ^ operator
-Base.@assume_effects :total pow(x::Float64, y::Float64) = ccall((:pow,libm),  Float64, (Float64,Float64), x, y)
-Base.@assume_effects :total pow(x::Float32, y::Float32) = ccall((:powf,libm), Float32, (Float32,Float32), x, y)
 # We `promote` first before converting to floating pointing numbers to ensure that
 # e.g. `pow(::Float32, ::Int)` ends up calling `pow(::Float32, ::Float32)`
-pow(x::Real, y::Real) = pow(promote(x, y)...)
-pow(x::T, y::T) where {T<:Real} = pow(float(x), float(y))
-function pow(x::T, y::T) where {T<:AbstractFloat}
-    if x < 0 && !isinteger(y)
-        return T(NaN)
-    end
-    return x ^ y
+function pow(x::Real, y::Real)
+    fx, fy = map(float, promote(x, y))
+    return fx < 0 && !isinteger(fy) ? oftype(fx, NaN) : fx^fy
 end
-pow(x, y) = ^(x, y)
-
-# The following combinations are safe, so we can fall back to ^
-pow(x::Number, y::Integer) = x^y
-pow(x::Real, y::Integer) = x^y
-pow(x::Complex, y::Complex) = x^y
+pow(x::Number, y::Integer) = x^y # safe fallback
+pow(x::Real, y::Integer) = x^y # safe fallback
+pow(x::Complex, y::Complex) = x^y # safe fallback
+pow(x, y) = ^(x, y) # generic fallback # TODO: unsafe?
 
 """
 NaNMath.sum(A)
