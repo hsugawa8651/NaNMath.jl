@@ -25,11 +25,13 @@ end
 @test isnan(NaNMath.sqrt(-5))
 @test NaNMath.sqrt(5) == Base.sqrt(5)
 @test isnan(NaNMath.sqrt(-3.2f0)) && NaNMath.sqrt(-3.2f0) isa Float32
+@test isnan(NaNMath.sqrt(Float16(-3.2))) && NaNMath.sqrt(Float16(-3.2)) isa Float16
 @test isnan(NaNMath.sqrt(-BigFloat(7.0))) && NaNMath.sqrt(-BigFloat(7.0)) isa BigFloat 
 @test isnan(NaNMath.sqrt(-7)) && NaNMath.sqrt(-7) isa Float64 
 @inferred NaNMath.sqrt(5)
 @inferred NaNMath.sqrt(5.0)
 @inferred NaNMath.sqrt(5.0f0)
+@inferred NaNMath.sqrt(Float16(5))
 @inferred NaNMath.sqrt(-5)
 @inferred NaNMath.sqrt(-5.0)
 @inferred NaNMath.sqrt(-5.0f0)
