@@ -1,0 +1,38 @@
+# Timing of NaNMath.sqrt before and after narrowing the intrinsic method to
+# Float16, on GitHub's standard runners. Lives only on the sqrt-bench branch of
+# a fork; not part of any pull request.
+name: sqrt-bench
+
+on:
+  push:
+    branches: [sqrt-bench]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['1.10', '1']
+        os:
+          - ubuntu-latest      # x86-64
+          - windows-latest     # x86-64
+          - ubuntu-24.04-arm   # AArch64
+          - macos-latest       # Apple silicon
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+      - name: Instantiate (NaNMath from this checkout)
+        shell: bash
+        run: julia --project=bench -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
+      - name: Benchmark
+        shell: bash
+        run: julia --project=bench bench/sqrt_bench.jl
