@@ -57,7 +57,10 @@ for f in (:max, :min)
     @eval ($f)(x, y) = (Base.$f)(x, y)
 end
 
-sqrt(x::T) where {T<:Union{Float16, Float32, Float64}} = x < T(0) ? T(NaN) : Base.Intrinsics.sqrt_llvm(x)
+# Base.sqrt(::Float16) computes in Float32; the intrinsic can use a native
+# half-precision instruction. Float32 and Float64 take the method below, which
+# compiles to the same single instruction and has AD rules through Base.sqrt.
+sqrt(x::Float16) = x < Float16(0) ? Float16(NaN) : Base.Intrinsics.sqrt_llvm(x)
 sqrt(x::T) where {T<:AbstractFloat} = x < T(0) ? T(NaN) : Base.sqrt(x)
 sqrt(x::Real) = sqrt(float(x))
 
